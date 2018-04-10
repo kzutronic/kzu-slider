@@ -5,7 +5,7 @@ KzuSlider is a responsive and lightweight infinite slider - carousel component f
 
 ## Demo
 
-See Demo: [Here](http://kzu-slider-demo.s3-website-us-east-1.amazonaws.com/)
+See Demo: <a href="http://kzu-slider-demo.s3-website-us-east-1.amazonaws.com/" target="_blank">Here</a>
 
 ## Installation
 
@@ -15,6 +15,7 @@ See Demo: [Here](http://kzu-slider-demo.s3-website-us-east-1.amazonaws.com/)
 
 ```
 import KzuSlider from "kzu-slider";
+
 <KzuSlider
   slides={[
     {
