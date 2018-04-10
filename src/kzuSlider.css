@@ -1,0 +1,328 @@
+.image-slider-container {
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.kzu-slider {
+  position: absolute;
+  z-index: -25;
+  width: 100%;
+  height: 100%;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: 500;
+  color: rgba(100, 100, 100, 0.25);
+}
+
+.image-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slides-screen {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.slides-container-actual {
+  position: relative;
+  height: 100%;
+  display: flex;
+  transition: margin-left 1s ease-in-out;
+  opacity: 1;
+}
+
+.slides-container-transition {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  transition: margin-left 1s ease-in-out;
+}
+
+.slide-single {
+  height: 100%;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  position: relative;
+}
+
+.slide-contents-container {
+  width: 75%;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 24px 32px;
+  border-radius: 1px;
+  position: relative;
+  /*z-index: 20;*/
+}
+
+.slide-contents-align-left {
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-align-content: flex-start;
+  -ms-flex-line-pack: start;
+  align-content: flex-start;
+  -webkit-align-items: flex-start;
+  -ms-flex-align: start;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.slide-contents-align-center {
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-align-content: stretch;
+  -ms-flex-line-pack: stretch;
+  align-content: stretch;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide-contents-align-right {
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-align-content: flex-end;
+  -ms-flex-line-pack: end;
+  align-content: flex-end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.slide-single-title {
+  font-size: 64px;
+  line-height: 68px;
+}
+.slide-single-subtitle {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.slide-single-content {
+  font-size: 14px;
+}
+
+.slide-single-buttons {
+  margin-top: 16px;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+.slide-nav-button {
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 30;
+  top: 0px;
+  height: 100%;
+  cursor: pointer;
+  color: rgba(210, 210, 210, 0.8);
+  line-height: 23px;
+  transition: background 0.2s;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  padding: 16px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 28px;
+  line-height: 28px;
+}
+
+.slide-nav-button:hover {
+  color: white;
+  transition: color 0.2s;
+}
+
+.previous-slide-button {
+  left: 0px;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.next-slide-button {
+  right: 0px;
+  -webkit-justify-content: flex-end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+}
+
+.slide-button {
+  font-size: 12px;
+  background: white;
+  margin: 0px 8px;
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-button:hover {
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.slide-button:hover .slide-button-overlay {
+  opacity: 1;
+  transition: opacity 0.1s;
+}
+
+.slide-button:nth-child(1) {
+  margin-left: 0px;
+}
+
+.slide-button:nth-last-child(1) {
+  margin-right: 0px;
+}
+
+.slide-button-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.25);
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.1s;
+}
+
+.slide-button-title {
+  position: relative;
+  z-index: 2;
+}
+
+.text-wrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slide-navigation-dots {
+  position: absolute;
+  width: 100%;
+  bottom: 16px;
+  z-index: 99;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-align-content: center;
+  -ms-flex-line-pack: center;
+  align-content: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.slide-navigation-dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 4px;
+  background-color: rgba(210, 210, 210, 0.8);
+  margin: 4px;
+  cursor: pointer;
+}
+
+.slide-navigation-dot-active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.slide-navigation-dot:hover {
+  background-color: rgba(200, 200, 255, 0.9);
+  margin: 4px;
+  cursor: pointer;
+}
+
+.slide-video-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.slide-video-container iframe {
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+}
+
+.slide-shade {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+  z-index: 0;
+}
+
+@media screen and (max-width: 720px) {
+  .slide-contents-container {
+    width: 80%;
+    padding: 16px 24px !important;
+  }
+  .slide-single {
+    /*background-attachment: scroll !important;*/
+  }
+  .slide-single-title {
+    font-size: 32px;
+    line-height: 44px;
+  }
+  .slide-single-subtitle {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  .slide-single-content {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .slide-single-buttons {
+    margin-top: 12px;
+  }
+
+  .slide-button {
+    font-size: 12px;
+    margin: 0px 4px;
+    padding: 6px 8px;
+  }
+}
