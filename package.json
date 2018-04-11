@@ -1,14 +1,13 @@
 {
   "name": "kzu-slider",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "Image and video slider component for React.js",
   "main": "build/index.js",
   "peerDependencies": {
     "react": "^16.2.0"
   },
   "dependencies": {
-    "react": "^16.2.0",
-    "webpack": "^2.6.1"
+    "react": "^16.2.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,6 +19,7 @@
     "email": "kzumurat@gmail.com"
   },
   "devDependencies": {
+    "webpack": "^2.6.1",
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
@@ -28,5 +28,21 @@
     "babel-preset-env": "^1.5.1",
     "css-loader": "^0.28.11",
     "style-loader": "^0.20.3"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kzutronic/kzu-slider"
+  },
+  "keywords": [
+    "react",
+    "react-component",
+    "react-slider",
+    "react-carousel",
+    "image-slider",
+    "slider",
+    "carousel",
+    "responsive",
+    "video-slider"
+  ]
 }
