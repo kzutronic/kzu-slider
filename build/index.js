@@ -160,7 +160,14 @@ var KzuSlider = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (KzuSlider.__proto__ || Object.getPrototypeOf(KzuSlider)).call(this, props));
 
-    _this.state = { slide: 0, slides: 0, players: [], backwards: false };
+    _this.state = {
+      slide: 0,
+      slides: 0,
+      players: [],
+      backwards: false,
+      touchDownX: 0,
+      swipeX: 0
+    };
     return _this;
   }
 
@@ -328,7 +335,7 @@ var KzuSlider = function (_Component) {
               paddingBottom: (contentPadding && contentPadding.bottom || 24) + "px"
             }
           },
-          _react2.default.createElement(
+          slide.title && _react2.default.createElement(
             "div",
             {
               className: "slide-single-title",
@@ -338,7 +345,7 @@ var KzuSlider = function (_Component) {
             },
             slide.title
           ),
-          _react2.default.createElement(
+          slide.subtitle && _react2.default.createElement(
             "div",
             {
               className: "slide-single-subtitle",
@@ -348,7 +355,7 @@ var KzuSlider = function (_Component) {
             },
             slide.subtitle
           ),
-          _react2.default.createElement(
+          slide.content && _react2.default.createElement(
             "div",
             {
               className: "slide-single-content",
@@ -358,16 +365,20 @@ var KzuSlider = function (_Component) {
             },
             slide.content
           ),
-          _react2.default.createElement(
+          slide.buttons && slide.buttons.length > 0 && _react2.default.createElement(
             "div",
             { className: "slide-single-buttons" },
-            slide.buttons && slide.buttons.length > 0 && slide.buttons.map(function (b, i) {
+            slide.buttons.map(function (b, i) {
               return _react2.default.createElement(
                 "div",
                 {
                   key: i,
                   className: "slide-button",
                   onClick: b.onClick,
+                  onTouchStart: function onTouchStart(e) {
+                    e.stopPropagation();
+                    b.onClick();
+                  },
                   style: {
                     backgroundColor: b.color ? b.color : "#fff",
                     color: b.textColor ? b.textColor : "#000"
@@ -390,6 +401,7 @@ var KzuSlider = function (_Component) {
     value: function render() {
       var _this3 = this;
 
+      console.log(this.state.swipeX);
       var _props3 = this.props,
           slides = _props3.slides,
           auto = _props3.auto,
@@ -405,8 +417,39 @@ var KzuSlider = function (_Component) {
           style: _extends({
             height: this.height()
           }, this.props.style),
-          onMouseLeave: function onMouseLeave() {
+          onTouchStart: function onTouchStart(e) {
+            e.preventDefault();
+
+            auto && _this3.stopAutoPlay();
+            _this3.setState({
+              touchDownX: e.touches[0].clientX
+            });
+          },
+          onTouchMove: function onTouchMove(e) {
+            e.preventDefault();
+            var swipeLenght = e.touches[0].clientX - _this3.state.touchDownX;
+            if (_this3.state.touchDownX) {
+              if (swipeLenght > 40 || swipeLenght < -40) {
+                _this3.setState({
+                  swipeX: e.touches[0].clientX - _this3.state.touchDownX
+                });
+              }
+            }
+          },
+          onTouchEnd: function onTouchEnd(e) {
+            e.preventDefault();
+            console.log(_this3.state.swipeX);
+            if (_this3.state.swipeX > 100) {
+              _this3.handlePreviousClick();
+            }
+            if (_this3.state.swipeX < -100) {
+              _this3.handleNextClick();
+            }
             auto && _this3.AutoPlay();
+            _this3.setState({
+              touchDownX: 0,
+              swipeX: 0
+            });
           }
         },
         _react2.default.createElement(
@@ -415,10 +458,34 @@ var KzuSlider = function (_Component) {
           slides && slides.length > 0 ? _react2.default.createElement(
             "div",
             {
-              className: "slides-screen",
-              onMouseOver: function onMouseOver() {
-                _this3.stopAutoPlay();
-              }
+              className: "slides-screen"
+
+              // onMouseDown={e => {
+              //   // console.log("mouse down", e.screenX);
+              //   auto && this.stopAutoPlay();
+              //   this.setState({ mouseDownX: e.screenX, mouseMoveX: e.screenX });
+              // }}
+              // onMouseMove={e => {
+              //   //console.log("mouse move", e.screenX);
+              //   if (this.state.mouseDownX) {
+              //     this.setState({ mouseMoveX: e.screenX });
+              //   }
+              // }}
+              // onMouseUp={e => {
+              //   console.log(this.state.mouseMoveX - this.state.mouseDownX);
+              //   if (this.state.mouseMoveX - this.state.mouseDownX > 150) {
+              //     this.handlePreviousClick();
+              //   }
+              //   if (this.state.mouseMoveX - this.state.mouseDownX < -150) {
+              //     this.handleNextClick();
+              //   }
+              //   auto && this.AutoPlay();
+              //   this.setState({
+              //     mouseDownX: 0,
+              //     mouseMoveX: 0,
+              //     mouseUpX: 0
+              //   });
+              // }}
             },
             _react2.default.createElement(
               "div",
@@ -426,8 +493,8 @@ var KzuSlider = function (_Component) {
                 className: "slides-container-actual",
                 style: {
                   width: slides.length * 100 + "%",
-                  marginLeft: (this.state.slide - 1) * -100 + "%",
-                  transition: "margin-left " + (transition ? transition / 1000 : 1) + "s ease-in-out"
+                  marginLeft: "calc(" + (this.state.slide - 1) * -100 + "% + " + this.state.swipeX + "px)",
+                  transition: this.state.touchDownX ? null : "margin-left " + (transition ? transition / 500 : 1) + "s ease-in-out"
                 }
               },
               slides.map(function (s, i) {
@@ -440,9 +507,9 @@ var KzuSlider = function (_Component) {
                 className: "slides-container-transition",
                 style: {
                   width: (slides.length + 2) * 100 + "%",
-                  marginLeft: "" + (this.state.slide === 1 ? -100 + "%" : this.state.slide === slides.length ? "0%" : 100 + "%"),
+                  marginLeft: "" + (this.state.slide === 1 ? "calc(" + -100 + "% + " + this.state.swipeX + "px )" : this.state.slide === slides.length ? "calc(0% + " + this.state.swipeX + "px )" : "calc(" + 100 + "% + " + this.state.swipeX + "px )"),
                   zIndex: this.state.slide === 1 && !this.state.backwards || this.state.slide === slides.length && slides.length > 2 || slides.length === 2 && this.state.slide === slides.length && this.state.backwards ? 10 : -10,
-                  transition: "margin-left " + (transition ? transition / 1000 : 1) + "s ease-in-out"
+                  transition: this.state.touchDownX ? null : "margin-left " + (transition ? transition / 500 : 1) + "s ease-in-out"
                 }
               },
               this.singleSlide(slides[slides.length - 1], "last"),
@@ -470,17 +537,21 @@ var KzuSlider = function (_Component) {
                 onMouseOver: function onMouseOver() {
                   auto && _this3.stopAutoPlay();
                 },
+                onMouseLeave: function onMouseLeave() {
+                  auto && _this3.AutoPlay();
+                },
                 onClick: function onClick() {
                   return _this3.handlePreviousClick();
                 },
-                style: {
-                  width: (contentWidth ? (100 - contentWidth) / 2 : 10) + "%"
+                onTouchStart: function onTouchStart(e) {
+                  e.preventDefault();
+                  _this3.handlePreviousClick();
                 }
               },
               _react2.default.createElement(
-                "div",
-                null,
-                "<"
+                "svg",
+                { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 320 512" },
+                _react2.default.createElement("path", { d: "M34.52 239.03L228.87 44.69c9.37-9.37 24.57-9.37 33.94 0l22.67 22.67c9.36 9.36 9.37 24.52.04 33.9L131.49 256l154.02 154.75c9.34 9.38 9.32 24.54-.04 33.9l-22.67 22.67c-9.37 9.37-24.57 9.37-33.94 0L34.52 272.97c-9.37-9.37-9.37-24.57 0-33.94z" })
               )
             ),
             _react2.default.createElement(
@@ -490,23 +561,35 @@ var KzuSlider = function (_Component) {
                 onMouseOver: function onMouseOver() {
                   auto && _this3.stopAutoPlay();
                 },
+                onMouseLeave: function onMouseLeave() {
+                  auto && _this3.AutoPlay();
+                },
                 onClick: function onClick() {
                   return _this3.handleNextClick();
                 },
-                style: {
-                  width: (contentWidth ? (100 - contentWidth) / 2 : 10) + "%"
+                onTouchStart: function onTouchStart(e) {
+                  e.preventDefault();
+                  _this3.handleNextClick();
                 }
               },
               _react2.default.createElement(
-                "div",
-                null,
-                ">"
+                "svg",
+                { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 320 512" },
+                _react2.default.createElement("path", { d: "M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" })
               )
             )
           ),
           !hideDots && slides && slides.length > 0 && _react2.default.createElement(
             "div",
-            { className: "slide-navigation-dots" },
+            {
+              className: "slide-navigation-dots",
+              onMouseOver: function onMouseOver() {
+                auto && _this3.stopAutoPlay();
+              },
+              onMouseLeave: function onMouseLeave() {
+                auto && _this3.AutoPlay();
+              }
+            },
             slides && slides.length > 0 && slides.map(function (s, i) {
               var classes = ["slide-navigation-dot"];
               if (i + 1 === _this3.state.slide) {
@@ -516,11 +599,15 @@ var KzuSlider = function (_Component) {
               return _react2.default.createElement("div", {
                 key: i,
                 className: classes.join(" "),
-                onClick: function onClick() {
-                  _this3.setState({
-                    slide: i + 1,
-                    backwards: _this3.state.slide === 2 ? true : false
-                  });
+                onClick: function onClick(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (_this3.state.slide !== i + 1) {
+                    _this3.setState({
+                      slide: i + 1,
+                      backwards: _this3.state.slide === 2 ? true : false
+                    });
+                  }
                 }
               });
             })
@@ -544,7 +631,7 @@ exports = module.exports = __webpack_require__(4)(false);
 
 
 // module
-exports.push([module.i, ".image-slider-container {\n  box-sizing: border-box;\n  overflow: hidden;\n  font-family: inherit;\n}\n\n.kzu-slider {\n  position: absolute;\n  z-index: -25;\n  width: 100%;\n  height: 100%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  font-size: 32px;\n  font-weight: 500;\n  color: rgba(100, 100, 100, 0.25);\n}\n\n.image-slider {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n.slides-screen {\n  height: 100%;\n  width: 100%;\n  overflow: hidden;\n  position: relative;\n}\n\n.slides-container-actual {\n  position: relative;\n  height: 100%;\n  display: flex;\n  transition: margin-left 1s ease-in-out;\n  opacity: 1;\n}\n\n.slides-container-transition {\n  position: absolute;\n  top: 0;\n  height: 100%;\n  display: flex;\n  transition: margin-left 1s ease-in-out;\n}\n\n.slide-single {\n  height: 100%;\n  width: 100%;\n  background-size: cover;\n  background-position: center;\n  background-repeat: no-repeat;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  position: relative;\n}\n\n.slide-contents-container {\n  width: 75%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  box-sizing: border-box;\n  padding: 24px 32px;\n  border-radius: 1px;\n  position: relative;\n  /*z-index: 20;*/\n}\n\n.slide-contents-align-left {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-start;\n  -ms-flex-line-pack: start;\n  align-content: flex-start;\n  -webkit-align-items: flex-start;\n  -ms-flex-align: start;\n  align-items: flex-start;\n  text-align: left;\n}\n\n.slide-contents-align-center {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: stretch;\n  -ms-flex-line-pack: stretch;\n  align-content: stretch;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  text-align: center;\n}\n\n.slide-contents-align-right {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-end;\n  -ms-flex-line-pack: end;\n  align-content: flex-end;\n  -webkit-align-items: flex-end;\n  -ms-flex-align: end;\n  align-items: flex-end;\n  text-align: right;\n}\n\n.slide-single-title {\n  font-size: 64px;\n  line-height: 68px;\n}\n.slide-single-subtitle {\n  font-size: 24px;\n  margin-bottom: 8px;\n}\n.slide-single-content {\n  font-size: 14px;\n}\n\n.slide-single-buttons {\n  margin-top: 16px;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n}\n\n.slide-nav-button {\n  box-sizing: border-box;\n  position: absolute;\n  z-index: 30;\n  top: 0px;\n  height: 100%;\n  cursor: pointer;\n  color: rgba(210, 210, 210, 0.8);\n  line-height: 23px;\n  transition: background 0.2s;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  padding: 16px;\n  font-family: Verdana, Geneva, sans-serif;\n  font-size: 28px;\n  line-height: 28px;\n}\n\n.slide-nav-button:hover {\n  color: white;\n  transition: color 0.2s;\n}\n\n.previous-slide-button {\n  left: 0px;\n  -webkit-justify-content: flex-start;\n  -ms-flex-pack: start;\n  justify-content: flex-start;\n}\n\n.next-slide-button {\n  right: 0px;\n  -webkit-justify-content: flex-end;\n  -ms-flex-pack: end;\n  justify-content: flex-end;\n}\n\n.slide-button {\n  font-size: 12px;\n  background: white;\n  margin: 0px 8px;\n  padding: 8px 16px;\n  border-radius: 2px;\n  cursor: pointer;\n  position: relative;\n  overflow: hidden;\n}\n\n.slide-button:hover {\n  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);\n}\n\n.slide-button:hover .slide-button-overlay {\n  opacity: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button:nth-child(1) {\n  margin-left: 0px;\n}\n\n.slide-button:nth-last-child(1) {\n  margin-right: 0px;\n}\n\n.slide-button-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(255, 255, 255, 0.25);\n  opacity: 0;\n  z-index: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button-title {\n  position: relative;\n  z-index: 2;\n}\n\n.text-wrap {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.slide-navigation-dots {\n  position: absolute;\n  width: 100%;\n  bottom: 16px;\n  z-index: 99;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: center;\n  -ms-flex-line-pack: center;\n  align-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n}\n\n.slide-navigation-dot {\n  height: 8px;\n  width: 8px;\n  border-radius: 4px;\n  background-color: rgba(210, 210, 210, 0.8);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-navigation-dot-active {\n  background: rgba(255, 255, 255, 0.9);\n}\n\n.slide-navigation-dot:hover {\n  background-color: rgba(200, 200, 255, 0.9);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-video-container {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n.slide-video-container iframe {\n  position: absolute;\n  pointer-events: none;\n  width: 100%;\n}\n\n.slide-shade {\n  position: absolute;\n  height: 100%;\n  width: 100%;\n  left: 0px;\n  top: 0px;\n  z-index: 0;\n}\n\n@media screen and (max-width: 720px) {\n  .slide-contents-container {\n    width: 80%;\n    padding: 16px 24px !important;\n  }\n  .slide-single {\n    /*background-attachment: scroll !important;*/\n  }\n  .slide-single-title {\n    font-size: 32px;\n    line-height: 44px;\n  }\n  .slide-single-subtitle {\n    font-size: 16px;\n    margin-bottom: 4px;\n  }\n  .slide-single-content {\n    font-size: 12px;\n    line-height: 16px;\n  }\n\n  .slide-single-buttons {\n    margin-top: 12px;\n  }\n\n  .slide-button {\n    font-size: 12px;\n    margin: 0px 4px;\n    padding: 6px 8px;\n  }\n}\n", ""]);
+exports.push([module.i, ".image-slider-container {\n  box-sizing: border-box;\n  overflow: hidden;\n  font-family: inherit;\n}\n\n.kzu-slider {\n  position: absolute;\n  z-index: -25;\n  width: 100%;\n  height: 100%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  font-size: 32px;\n  font-weight: 500;\n  color: rgba(100, 100, 100, 0.25);\n}\n\n.image-slider {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n.slides-screen {\n  height: 100%;\n  width: 100%;\n  overflow: hidden;\n  position: relative;\n}\n\n.slides-container-actual {\n  position: relative;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n  opacity: 1;\n}\n\n.slides-container-transition {\n  position: absolute;\n  top: 0;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n}\n\n.slide-single {\n  height: 100%;\n  width: 100%;\n  background-size: cover;\n  background-position: center;\n  background-repeat: no-repeat;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  position: relative;\n}\n\n.slide-contents-container {\n  width: 75%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  box-sizing: border-box;\n  padding: 24px 32px;\n  border-radius: 1px;\n  position: relative;\n  /*z-index: 20;*/\n}\n\n.slide-contents-align-left {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-start;\n  -ms-flex-line-pack: start;\n  align-content: flex-start;\n  -webkit-align-items: flex-start;\n  -ms-flex-align: start;\n  align-items: flex-start;\n  text-align: left;\n}\n\n.slide-contents-align-center {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: stretch;\n  -ms-flex-line-pack: stretch;\n  align-content: stretch;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  text-align: center;\n}\n\n.slide-contents-align-right {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-end;\n  -ms-flex-line-pack: end;\n  align-content: flex-end;\n  -webkit-align-items: flex-end;\n  -ms-flex-align: end;\n  align-items: flex-end;\n  text-align: right;\n}\n\n.slide-single-title {\n  font-size: 64px;\n  line-height: 68px;\n}\n.slide-single-subtitle {\n  font-size: 24px;\n  margin-bottom: 8px;\n}\n.slide-single-content {\n  font-size: 14px;\n}\n\n.slide-single-buttons {\n  margin-top: 16px;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n}\n\n.slide-nav-button {\n  box-sizing: border-box;\n  position: absolute;\n  z-index: 30;\n  top: calc(50% - 16px);\n  height: 40px;\n  width: 40px;\n  cursor: pointer;\n  color: rgba(240, 240, 240, 0.8);\n  background: rgba(180, 180, 180, 0.4);\n  transition: background 0.2s;\n  border-radius: 50%;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.slide-nav-button svg {\n  width: 20px;\n  height: 20px;\n  fill: rgba(220, 220, 220, 0.8);\n}\n\n.slide-nav-button:hover svg {\n  fill: #fff;\n  transition: fill 0.2s;\n}\n\n.previous-slide-button {\n  left: 8px;\n}\n\n.next-slide-button {\n  right: 8px;\n}\n\n.slide-button {\n  font-size: 12px;\n  background: white;\n  margin: 0px 8px;\n  padding: 8px 16px;\n  border-radius: 2px;\n  cursor: pointer;\n  position: relative;\n  overflow: hidden;\n}\n\n.slide-button:hover {\n  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);\n}\n\n.slide-button:hover .slide-button-overlay {\n  opacity: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button:nth-child(1) {\n  margin-left: 0px;\n}\n\n.slide-button:nth-last-child(1) {\n  margin-right: 0px;\n}\n\n.slide-button-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(255, 255, 255, 0.25);\n  opacity: 0;\n  z-index: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button-title {\n  position: relative;\n  z-index: 2;\n}\n\n.text-wrap {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.slide-navigation-dots {\n  position: absolute;\n  width: 100%;\n  bottom: 16px;\n  z-index: 99;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: center;\n  -ms-flex-line-pack: center;\n  align-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n}\n\n.slide-navigation-dot {\n  height: 8px;\n  width: 8px;\n  border-radius: 4px;\n  background-color: rgba(210, 210, 210, 0.8);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-navigation-dot-active {\n  background: rgba(255, 255, 255, 0.9);\n}\n\n.slide-navigation-dot:hover {\n  background-color: rgba(200, 200, 255, 0.9);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-video-container {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n.slide-video-container iframe {\n  position: absolute;\n  pointer-events: none;\n  width: 100%;\n}\n\n.slide-shade {\n  position: absolute;\n  height: 100%;\n  width: 100%;\n  left: 0px;\n  top: 0px;\n  z-index: 0;\n}\n\n@media screen and (max-width: 720px) {\n  .slide-contents-container {\n    width: 80%;\n    padding: 16px 24px !important;\n  }\n  .slide-single {\n    /*background-attachment: scroll !important;*/\n  }\n  .slide-single-title {\n    font-size: 32px;\n    line-height: 44px;\n  }\n  .slide-single-subtitle {\n    font-size: 16px;\n    margin-bottom: 4px;\n  }\n  .slide-single-content {\n    font-size: 12px;\n    line-height: 16px;\n  }\n\n  .slide-single-buttons {\n    margin-top: 12px;\n  }\n\n  .slide-button {\n    font-size: 12px;\n    margin: 0px 4px;\n    padding: 6px 8px;\n  }\n  .slide-nav-button {\n    height: 24px;\n    width: 24px;\n  }\n  .slide-nav-button svg {\n    width: 12px;\n    height: 12px;\n  }\n}\n", ""]);
 
 // exports
 

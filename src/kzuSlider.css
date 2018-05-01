@@ -40,7 +40,7 @@
   position: relative;
   height: 100%;
   display: flex;
-  transition: margin-left 1s ease-in-out;
+  /*transition: margin-left 1s ease-in-out;*/
   opacity: 1;
 }
 
@@ -49,7 +49,7 @@
   top: 0;
   height: 100%;
   display: flex;
-  transition: margin-left 1s ease-in-out;
+  /*transition: margin-left 1s ease-in-out;*/
 }
 
 .slide-single {
@@ -147,41 +147,36 @@
   box-sizing: border-box;
   position: absolute;
   z-index: 30;
-  top: 0px;
-  height: 100%;
+  top: calc(50% - 16px);
+  height: 40px;
+  width: 40px;
   cursor: pointer;
-  color: rgba(210, 210, 210, 0.8);
-  line-height: 23px;
+  color: rgba(240, 240, 240, 0.8);
+  background: rgba(180, 180, 180, 0.4);
   transition: background 0.2s;
-  display: -ms-flexbox;
-  display: -webkit-flex;
+  border-radius: 50%;
   display: flex;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
+  justify-content: center;
   align-items: center;
-  padding: 16px;
-  font-family: Verdana, Geneva, sans-serif;
-  font-size: 28px;
-  line-height: 28px;
 }
 
-.slide-nav-button:hover {
-  color: white;
-  transition: color 0.2s;
+.slide-nav-button svg {
+  width: 20px;
+  height: 20px;
+  fill: rgba(220, 220, 220, 0.8);
+}
+
+.slide-nav-button:hover svg {
+  fill: #fff;
+  transition: fill 0.2s;
 }
 
 .previous-slide-button {
-  left: 0px;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
+  left: 8px;
 }
 
 .next-slide-button {
-  right: 0px;
-  -webkit-justify-content: flex-end;
-  -ms-flex-pack: end;
-  justify-content: flex-end;
+  right: 8px;
 }
 
 .slide-button {
@@ -324,5 +319,13 @@
     font-size: 12px;
     margin: 0px 4px;
     padding: 6px 8px;
+  }
+  .slide-nav-button {
+    height: 24px;
+    width: 24px;
+  }
+  .slide-nav-button svg {
+    width: 12px;
+    height: 12px;
   }
 }
