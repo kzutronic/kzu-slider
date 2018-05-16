@@ -11,8 +11,62 @@ class KzuSlider extends Component {
       players: [],
       backwards: false,
       touchDownX: 0,
-      swipeX: 0
+      swipeX: 0,
+      imgPosition: 0,
+      width: 0,
+      loading: true
     };
+    this.handleScroll = this.handleScroll.bind(this);
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+    this.handleNextClick = this.handleNextClick.bind(this);
+    this.handlePreviousClick = this.handlePreviousClick.bind(this);
+  }
+
+  componentWillMount() {
+    const { slides, auto, slide } = this.props;
+
+    if (slides && slides.length > 0) {
+      this.setState({ slide: 1, slides: slides.length });
+    }
+    if (slide) {
+      this.setState({ slide: slide });
+    }
+    if (auto) {
+      this.AutoPlay();
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.slide) {
+      this.setState({ slide: nextProps.slide });
+    }
+  }
+
+  componentDidMount() {
+    window.addEventListener("scroll", this.handleScroll);
+    window.addEventListener("resize", this.updateWindowDimensions);
+    this.updateWindowDimensions();
+
+    this.setState({
+      loading: false
+    });
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+    window.removeEventListener("resize", this.updateWindowDimensions);
+  }
+
+  updateWindowDimensions() {
+    this.setState({ width: window.innerWidth });
+  }
+
+  handleScroll() {
+    if (this.props.parallax) {
+      this.setState({
+        imgPosition: window.pageYOffset
+      });
+    }
   }
 
   height() {
@@ -72,18 +126,6 @@ class KzuSlider extends Component {
     }
   }
 
-  componentWillMount() {
-    const { slides, auto } = this.props;
-
-    if (slides && slides.length > 0) {
-      this.setState({ slide: 1, slides: slides.length });
-    }
-
-    if (auto) {
-      this.AutoPlay();
-    }
-  }
-
   classes() {
     let classes = ["image-slider-container"];
 
@@ -107,18 +149,47 @@ class KzuSlider extends Component {
     return containerClasses.join(" ");
   }
 
+  slideClasses() {
+    let slideClasses = ["slide-single"];
+    return slideClasses.join(" ");
+  }
+
   singleSlide(slide, index) {
-    const { parallax, contentWidth, contentPadding } = this.props;
+    const { contentPadding, parallax, contentWidth } = this.props;
+    let mobile = false;
+    if (this.state.width < 820) {
+      mobile = true;
+    }
+    // console.log(parallax);
 
     return (
       <div
         key={index}
-        className="slide-single"
-        style={{
-          backgroundImage: slide.youtubeKey ? null : `url(${slide.background})`,
-          backgroundAttachment: parallax ? "fixed" : "scroll"
-        }}
+        className={this.slideClasses()}
+        style={
+          {
+            // backgroundImage: slide.youtubeKey ? null : `url(${slide.background})`
+            //backgroundAttachment: parallax ? "fixed" : "scroll"
+            // top: parallax ? this.state.imgPosition : 0
+          }
+        }
       >
+        <div
+          className="slide-image-img"
+          style={{
+            backgroundImage: slide.youtubeKey
+              ? null
+              : `url(${
+                  mobile && slide.backgroundMobile
+                    ? slide.backgroundMobile
+                    : slide.background
+                })`
+            // transform: `translateY(${parallax ? this.state.imgPosition : 0}px) `,
+            //top: parallax ? this.state.imgPosition : 0
+            //backgroundAttachment: parallax ? "fixed" : "scroll"
+          }}
+        />
+
         {slide.shades &&
           slide.shades.length > 0 &&
           slide.shades.map((shade, shi) => {
@@ -227,16 +298,27 @@ class KzuSlider extends Component {
   }
 
   render() {
-    console.log(this.state.swipeX);
     const {
       slides,
       auto,
       hideArrows,
       hideDots,
-      contentWidth,
-      transition
+      transition,
+      disableTouch
     } = this.props;
-    return (
+
+    let transitionActive =
+      (this.state.slide === 1 && !this.state.backwards) ||
+      (this.state.slide === slides.length && slides.length > 2) ||
+      (slides.length === 2 &&
+        this.state.slide === slides.length &&
+        this.state.backwards)
+        ? true
+        : false;
+
+    return this.state.loading ? (
+      <div className="loading" />
+    ) : (
       <div
         className={this.classes()}
         style={{
@@ -244,7 +326,7 @@ class KzuSlider extends Component {
           ...this.props.style
         }}
         onTouchStart={e => {
-          e.preventDefault();
+          //e.preventDefault();
 
           auto && this.stopAutoPlay();
           this.setState({
@@ -252,9 +334,9 @@ class KzuSlider extends Component {
           });
         }}
         onTouchMove={e => {
-          e.preventDefault();
+          //e.preventDefault();
           const swipeLenght = e.touches[0].clientX - this.state.touchDownX;
-          if (this.state.touchDownX) {
+          if (!disableTouch && this.state.touchDownX) {
             if (swipeLenght > 40 || swipeLenght < -40) {
               this.setState({
                 swipeX: e.touches[0].clientX - this.state.touchDownX
@@ -263,19 +345,21 @@ class KzuSlider extends Component {
           }
         }}
         onTouchEnd={e => {
-          e.preventDefault();
-          console.log(this.state.swipeX);
-          if (this.state.swipeX > 100) {
-            this.handlePreviousClick();
+          if (!disableTouch) {
+            //e.preventDefault();
+
+            if (this.state.swipeX > 100) {
+              this.handlePreviousClick();
+            }
+            if (this.state.swipeX < -100) {
+              this.handleNextClick();
+            }
+            auto && this.AutoPlay();
+            this.setState({
+              touchDownX: 0,
+              swipeX: 0
+            });
           }
-          if (this.state.swipeX < -100) {
-            this.handleNextClick();
-          }
-          auto && this.AutoPlay();
-          this.setState({
-            touchDownX: 0,
-            swipeX: 0
-          });
         }}
       >
         <div className="image-slider">
@@ -314,14 +398,11 @@ class KzuSlider extends Component {
                 className="slides-container-actual"
                 style={{
                   width: `${slides.length * 100}%`,
-                  marginLeft: `calc(${(this.state.slide - 1) * -100}% + ${
-                    this.state.swipeX
-                  }px)`,
+                  transform: `translateX(calc(${(this.state.slide - 1) *
+                    -(100 / slides.length)}% + ${this.state.swipeX}px))`,
                   transition: this.state.touchDownX
                     ? null
-                    : `margin-left ${
-                        transition ? transition / 500 : 1
-                      }s ease-in-out`
+                    : `transform ${transition ? transition / 1000 : 1}s `
                 }}
               >
                 {slides.map((s, i) => {
@@ -332,26 +413,21 @@ class KzuSlider extends Component {
                 className="slides-container-transition"
                 style={{
                   width: `${(slides.length + 2) * 100}%`,
-                  marginLeft: `${
+                  transform: `${
                     this.state.slide === 1
-                      ? `calc(${-100}% + ${this.state.swipeX}px )`
+                      ? `translateX(calc(${-100 / (slides.length + 2)}% + ${
+                          this.state.swipeX
+                        }px ))`
                       : this.state.slide === slides.length
-                        ? `calc(0% + ${this.state.swipeX}px )`
-                        : `calc(${100}% + ${this.state.swipeX}px )`
+                        ? `translateX(calc(0% + ${this.state.swipeX}px ))`
+                        : `translateX(calc(${100 / (slides.length + 2)}% + ${
+                            this.state.swipeX
+                          }px ))`
                   }`,
-                  zIndex:
-                    (this.state.slide === 1 && !this.state.backwards) ||
-                    (this.state.slide === slides.length && slides.length > 2) ||
-                    (slides.length === 2 &&
-                      this.state.slide === slides.length &&
-                      this.state.backwards)
-                      ? 10
-                      : -10,
+                  zIndex: transitionActive ? 10 : -10,
                   transition: this.state.touchDownX
                     ? null
-                    : `margin-left ${
-                        transition ? transition / 500 : 1
-                      }s ease-in-out`
+                    : `transform ${transition ? transition / 1000 : 1}s `
                 }}
               >
                 {this.singleSlide(slides[slides.length - 1], "last")}
@@ -360,6 +436,26 @@ class KzuSlider extends Component {
                   return <div className="slide-single" key={i} />;
                 })}
               </div>
+
+              {
+                //    <div
+                //   className="slides-container-actual"
+                //   style={{
+                //     width: `${slides.length * 100}%`,
+                //     transform: `translateX(calc(${(this.state.slide - 1) *
+                //       -20}% + ${this.state.swipeX}px))`,
+                //     transition: this.state.touchDownX
+                //       ? null
+                //       : `transform ${
+                //           transition ? transition / 1000 : 1
+                //         }s ease-in-out`
+                //   }}
+                // >
+                //   {slides.map((s, i) => {
+                //     return this.singleSlide(s, i);
+                //   })}
+                // </div>
+              }
             </div>
           ) : (
             <div className="kzu-slider">
@@ -380,10 +476,10 @@ class KzuSlider extends Component {
                     auto && this.AutoPlay();
                   }}
                   onClick={() => this.handlePreviousClick()}
-                  onTouchStart={e => {
-                    e.preventDefault();
-                    this.handlePreviousClick();
-                  }}
+                  // onTouchStart={e => {
+                  //   e.preventDefault();
+                  //   this.handlePreviousClick();
+                  // }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                     <path d="M34.52 239.03L228.87 44.69c9.37-9.37 24.57-9.37 33.94 0l22.67 22.67c9.36 9.36 9.37 24.52.04 33.9L131.49 256l154.02 154.75c9.34 9.38 9.32 24.54-.04 33.9l-22.67 22.67c-9.37 9.37-24.57 9.37-33.94 0L34.52 272.97c-9.37-9.37-9.37-24.57 0-33.94z" />
@@ -398,10 +494,10 @@ class KzuSlider extends Component {
                     auto && this.AutoPlay();
                   }}
                   onClick={() => this.handleNextClick()}
-                  onTouchStart={e => {
-                    e.preventDefault();
-                    this.handleNextClick();
-                  }}
+                  // onTouchStart={e => {
+                  //   e.preventDefault();
+                  //   this.handleNextClick();
+                  // }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                     <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />

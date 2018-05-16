@@ -1,6 +1,6 @@
 {
   "name": "kzu-slider",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Image and video slider component for React.js",
   "main": "build/index.js",
   "peerDependencies": {

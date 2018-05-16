@@ -67,6 +67,8 @@ import KzuSlider from "kzu-slider";
 
 All props are optional, if not specified, default values will be applied.
 
+! Parallax effect is cancelled in this release due to performance and mobile issues
+
 **height**, can be "full" (string) or a number {500} representing height in px (default height is 500px ).  
 **parallax**, _boolean_ fixed background images.  
 **auto** , _boolean_ slider runs automatically, stops on mouse hover.  
@@ -77,6 +79,7 @@ All props are optional, if not specified, default values will be applied.
 **hideDots**, _boolean_ hides navigation dots.  
 **transition**, _number_ representing transition duration in ms (default is 1000).  
 **slides**, _array of objects_ containing information on all slides.
+**disableTouch**, _boolean_ disables touch slide effects on mobile.
 
 ## Slide properties
 

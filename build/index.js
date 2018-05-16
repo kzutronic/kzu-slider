@@ -64,67 +64,17 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-
-var content = __webpack_require__(3);
-
-if(typeof content === 'string') content = [[module.i, content, '']];
-
-var transform;
-var insertInto;
-
-
-
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(5)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {
-	module.hot.accept("!!../node_modules/css-loader/index.js!./kzuSlider.css", function() {
-		var newContent = require("!!../node_modules/css-loader/index.js!./kzuSlider.css");
-
-		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-
-		var locals = (function(a, b) {
-			var key, idx = 0;
-
-			for(key in a) {
-				if(!b || a[key] !== b[key]) return false;
-				idx++;
-			}
-
-			for(key in b) idx--;
-
-			return idx === 0;
-		}(content.locals, newContent.locals));
-
-		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
-
-		update(newContent);
-	});
-
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 1 */
 /***/ (function(module, exports) {
 
 module.exports = require("react");
 
 /***/ }),
-/* 2 */
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -138,11 +88,11 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(0);
+__webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -166,12 +116,76 @@ var KzuSlider = function (_Component) {
       players: [],
       backwards: false,
       touchDownX: 0,
-      swipeX: 0
+      swipeX: 0,
+      imgPosition: 0,
+      width: 0,
+      loading: true
     };
+    _this.handleScroll = _this.handleScroll.bind(_this);
+    _this.updateWindowDimensions = _this.updateWindowDimensions.bind(_this);
+    _this.handleNextClick = _this.handleNextClick.bind(_this);
+    _this.handlePreviousClick = _this.handlePreviousClick.bind(_this);
     return _this;
   }
 
   _createClass(KzuSlider, [{
+    key: "componentWillMount",
+    value: function componentWillMount() {
+      var _props = this.props,
+          slides = _props.slides,
+          auto = _props.auto,
+          slide = _props.slide;
+
+
+      if (slides && slides.length > 0) {
+        this.setState({ slide: 1, slides: slides.length });
+      }
+      if (slide) {
+        this.setState({ slide: slide });
+      }
+      if (auto) {
+        this.AutoPlay();
+      }
+    }
+  }, {
+    key: "componentWillReceiveProps",
+    value: function componentWillReceiveProps(nextProps) {
+      if (nextProps.slide) {
+        this.setState({ slide: nextProps.slide });
+      }
+    }
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      window.addEventListener("scroll", this.handleScroll);
+      window.addEventListener("resize", this.updateWindowDimensions);
+      this.updateWindowDimensions();
+
+      this.setState({
+        loading: false
+      });
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {
+      window.removeEventListener("scroll", this.handleScroll);
+      window.removeEventListener("resize", this.updateWindowDimensions);
+    }
+  }, {
+    key: "updateWindowDimensions",
+    value: function updateWindowDimensions() {
+      this.setState({ width: window.innerWidth });
+    }
+  }, {
+    key: "handleScroll",
+    value: function handleScroll() {
+      if (this.props.parallax) {
+        this.setState({
+          imgPosition: window.pageYOffset
+        });
+      }
+    }
+  }, {
     key: "height",
     value: function height() {
       var h = 500;
@@ -239,22 +253,6 @@ var KzuSlider = function (_Component) {
       }
     }
   }, {
-    key: "componentWillMount",
-    value: function componentWillMount() {
-      var _props = this.props,
-          slides = _props.slides,
-          auto = _props.auto;
-
-
-      if (slides && slides.length > 0) {
-        this.setState({ slide: 1, slides: slides.length });
-      }
-
-      if (auto) {
-        this.AutoPlay();
-      }
-    }
-  }, {
     key: "classes",
     value: function classes() {
       var classes = ["image-slider-container"];
@@ -280,24 +278,45 @@ var KzuSlider = function (_Component) {
       return containerClasses.join(" ");
     }
   }, {
+    key: "slideClasses",
+    value: function slideClasses() {
+      var slideClasses = ["slide-single"];
+      return slideClasses.join(" ");
+    }
+  }, {
     key: "singleSlide",
     value: function singleSlide(slide, index) {
       var _props2 = this.props,
+          contentPadding = _props2.contentPadding,
           parallax = _props2.parallax,
-          contentWidth = _props2.contentWidth,
-          contentPadding = _props2.contentPadding;
+          contentWidth = _props2.contentWidth;
 
+      var mobile = false;
+      if (this.state.width < 820) {
+        mobile = true;
+      }
+      // console.log(parallax);
 
       return _react2.default.createElement(
         "div",
         {
           key: index,
-          className: "slide-single",
+          className: this.slideClasses(),
           style: {
-            backgroundImage: slide.youtubeKey ? null : "url(" + slide.background + ")",
-            backgroundAttachment: parallax ? "fixed" : "scroll"
+            // backgroundImage: slide.youtubeKey ? null : `url(${slide.background})`
+            //backgroundAttachment: parallax ? "fixed" : "scroll"
+            // top: parallax ? this.state.imgPosition : 0
           }
         },
+        _react2.default.createElement("div", {
+          className: "slide-image-img",
+          style: {
+            backgroundImage: slide.youtubeKey ? null : "url(" + (mobile && slide.backgroundMobile ? slide.backgroundMobile : slide.background) + ")"
+            // transform: `translateY(${parallax ? this.state.imgPosition : 0}px) `,
+            //top: parallax ? this.state.imgPosition : 0
+            //backgroundAttachment: parallax ? "fixed" : "scroll"
+          }
+        }),
         slide.shades && slide.shades.length > 0 && slide.shades.map(function (shade, shi) {
           return _react2.default.createElement("div", {
             key: shi,
@@ -401,16 +420,18 @@ var KzuSlider = function (_Component) {
     value: function render() {
       var _this3 = this;
 
-      console.log(this.state.swipeX);
       var _props3 = this.props,
           slides = _props3.slides,
           auto = _props3.auto,
           hideArrows = _props3.hideArrows,
           hideDots = _props3.hideDots,
-          contentWidth = _props3.contentWidth,
-          transition = _props3.transition;
+          transition = _props3.transition,
+          disableTouch = _props3.disableTouch;
 
-      return _react2.default.createElement(
+
+      var transitionActive = this.state.slide === 1 && !this.state.backwards || this.state.slide === slides.length && slides.length > 2 || slides.length === 2 && this.state.slide === slides.length && this.state.backwards ? true : false;
+
+      return this.state.loading ? _react2.default.createElement("div", { className: "loading" }) : _react2.default.createElement(
         "div",
         {
           className: this.classes(),
@@ -418,7 +439,7 @@ var KzuSlider = function (_Component) {
             height: this.height()
           }, this.props.style),
           onTouchStart: function onTouchStart(e) {
-            e.preventDefault();
+            //e.preventDefault();
 
             auto && _this3.stopAutoPlay();
             _this3.setState({
@@ -426,9 +447,9 @@ var KzuSlider = function (_Component) {
             });
           },
           onTouchMove: function onTouchMove(e) {
-            e.preventDefault();
+            //e.preventDefault();
             var swipeLenght = e.touches[0].clientX - _this3.state.touchDownX;
-            if (_this3.state.touchDownX) {
+            if (!disableTouch && _this3.state.touchDownX) {
               if (swipeLenght > 40 || swipeLenght < -40) {
                 _this3.setState({
                   swipeX: e.touches[0].clientX - _this3.state.touchDownX
@@ -437,19 +458,21 @@ var KzuSlider = function (_Component) {
             }
           },
           onTouchEnd: function onTouchEnd(e) {
-            e.preventDefault();
-            console.log(_this3.state.swipeX);
-            if (_this3.state.swipeX > 100) {
-              _this3.handlePreviousClick();
+            if (!disableTouch) {
+              //e.preventDefault();
+
+              if (_this3.state.swipeX > 100) {
+                _this3.handlePreviousClick();
+              }
+              if (_this3.state.swipeX < -100) {
+                _this3.handleNextClick();
+              }
+              auto && _this3.AutoPlay();
+              _this3.setState({
+                touchDownX: 0,
+                swipeX: 0
+              });
             }
-            if (_this3.state.swipeX < -100) {
-              _this3.handleNextClick();
-            }
-            auto && _this3.AutoPlay();
-            _this3.setState({
-              touchDownX: 0,
-              swipeX: 0
-            });
           }
         },
         _react2.default.createElement(
@@ -493,8 +516,8 @@ var KzuSlider = function (_Component) {
                 className: "slides-container-actual",
                 style: {
                   width: slides.length * 100 + "%",
-                  marginLeft: "calc(" + (this.state.slide - 1) * -100 + "% + " + this.state.swipeX + "px)",
-                  transition: this.state.touchDownX ? null : "margin-left " + (transition ? transition / 500 : 1) + "s ease-in-out"
+                  transform: "translateX(calc(" + (this.state.slide - 1) * -(100 / slides.length) + "% + " + this.state.swipeX + "px))",
+                  transition: this.state.touchDownX ? null : "transform " + (transition ? transition / 1000 : 1) + "s "
                 }
               },
               slides.map(function (s, i) {
@@ -507,9 +530,9 @@ var KzuSlider = function (_Component) {
                 className: "slides-container-transition",
                 style: {
                   width: (slides.length + 2) * 100 + "%",
-                  marginLeft: "" + (this.state.slide === 1 ? "calc(" + -100 + "% + " + this.state.swipeX + "px )" : this.state.slide === slides.length ? "calc(0% + " + this.state.swipeX + "px )" : "calc(" + 100 + "% + " + this.state.swipeX + "px )"),
-                  zIndex: this.state.slide === 1 && !this.state.backwards || this.state.slide === slides.length && slides.length > 2 || slides.length === 2 && this.state.slide === slides.length && this.state.backwards ? 10 : -10,
-                  transition: this.state.touchDownX ? null : "margin-left " + (transition ? transition / 500 : 1) + "s ease-in-out"
+                  transform: "" + (this.state.slide === 1 ? "translateX(calc(" + -100 / (slides.length + 2) + "% + " + this.state.swipeX + "px ))" : this.state.slide === slides.length ? "translateX(calc(0% + " + this.state.swipeX + "px ))" : "translateX(calc(" + 100 / (slides.length + 2) + "% + " + this.state.swipeX + "px ))"),
+                  zIndex: transitionActive ? 10 : -10,
+                  transition: this.state.touchDownX ? null : "transform " + (transition ? transition / 1000 : 1) + "s "
                 }
               },
               this.singleSlide(slides[slides.length - 1], "last"),
@@ -542,11 +565,11 @@ var KzuSlider = function (_Component) {
                 },
                 onClick: function onClick() {
                   return _this3.handlePreviousClick();
-                },
-                onTouchStart: function onTouchStart(e) {
-                  e.preventDefault();
-                  _this3.handlePreviousClick();
                 }
+                // onTouchStart={e => {
+                //   e.preventDefault();
+                //   this.handlePreviousClick();
+                // }}
               },
               _react2.default.createElement(
                 "svg",
@@ -566,11 +589,11 @@ var KzuSlider = function (_Component) {
                 },
                 onClick: function onClick() {
                   return _this3.handleNextClick();
-                },
-                onTouchStart: function onTouchStart(e) {
-                  e.preventDefault();
-                  _this3.handleNextClick();
                 }
+                // onTouchStart={e => {
+                //   e.preventDefault();
+                //   this.handleNextClick();
+                // }}
               },
               _react2.default.createElement(
                 "svg",
@@ -623,6 +646,56 @@ var KzuSlider = function (_Component) {
 exports.default = KzuSlider;
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(3);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(5)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../node_modules/css-loader/index.js!./kzuSlider.css", function() {
+		var newContent = require("!!../node_modules/css-loader/index.js!./kzuSlider.css");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -631,7 +704,7 @@ exports = module.exports = __webpack_require__(4)(false);
 
 
 // module
-exports.push([module.i, ".image-slider-container {\n  box-sizing: border-box;\n  overflow: hidden;\n  font-family: inherit;\n}\n\n.kzu-slider {\n  position: absolute;\n  z-index: -25;\n  width: 100%;\n  height: 100%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  font-size: 32px;\n  font-weight: 500;\n  color: rgba(100, 100, 100, 0.25);\n}\n\n.image-slider {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n.slides-screen {\n  height: 100%;\n  width: 100%;\n  overflow: hidden;\n  position: relative;\n}\n\n.slides-container-actual {\n  position: relative;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n  opacity: 1;\n}\n\n.slides-container-transition {\n  position: absolute;\n  top: 0;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n}\n\n.slide-single {\n  height: 100%;\n  width: 100%;\n  background-size: cover;\n  background-position: center;\n  background-repeat: no-repeat;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  position: relative;\n}\n\n.slide-contents-container {\n  width: 75%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  box-sizing: border-box;\n  padding: 24px 32px;\n  border-radius: 1px;\n  position: relative;\n  /*z-index: 20;*/\n}\n\n.slide-contents-align-left {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-start;\n  -ms-flex-line-pack: start;\n  align-content: flex-start;\n  -webkit-align-items: flex-start;\n  -ms-flex-align: start;\n  align-items: flex-start;\n  text-align: left;\n}\n\n.slide-contents-align-center {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: stretch;\n  -ms-flex-line-pack: stretch;\n  align-content: stretch;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  text-align: center;\n}\n\n.slide-contents-align-right {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-end;\n  -ms-flex-line-pack: end;\n  align-content: flex-end;\n  -webkit-align-items: flex-end;\n  -ms-flex-align: end;\n  align-items: flex-end;\n  text-align: right;\n}\n\n.slide-single-title {\n  font-size: 64px;\n  line-height: 68px;\n}\n.slide-single-subtitle {\n  font-size: 24px;\n  margin-bottom: 8px;\n}\n.slide-single-content {\n  font-size: 14px;\n}\n\n.slide-single-buttons {\n  margin-top: 16px;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n}\n\n.slide-nav-button {\n  box-sizing: border-box;\n  position: absolute;\n  z-index: 30;\n  top: calc(50% - 16px);\n  height: 40px;\n  width: 40px;\n  cursor: pointer;\n  color: rgba(240, 240, 240, 0.8);\n  background: rgba(180, 180, 180, 0.4);\n  transition: background 0.2s;\n  border-radius: 50%;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.slide-nav-button svg {\n  width: 20px;\n  height: 20px;\n  fill: rgba(220, 220, 220, 0.8);\n}\n\n.slide-nav-button:hover svg {\n  fill: #fff;\n  transition: fill 0.2s;\n}\n\n.previous-slide-button {\n  left: 8px;\n}\n\n.next-slide-button {\n  right: 8px;\n}\n\n.slide-button {\n  font-size: 12px;\n  background: white;\n  margin: 0px 8px;\n  padding: 8px 16px;\n  border-radius: 2px;\n  cursor: pointer;\n  position: relative;\n  overflow: hidden;\n}\n\n.slide-button:hover {\n  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);\n}\n\n.slide-button:hover .slide-button-overlay {\n  opacity: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button:nth-child(1) {\n  margin-left: 0px;\n}\n\n.slide-button:nth-last-child(1) {\n  margin-right: 0px;\n}\n\n.slide-button-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(255, 255, 255, 0.25);\n  opacity: 0;\n  z-index: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button-title {\n  position: relative;\n  z-index: 2;\n}\n\n.text-wrap {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.slide-navigation-dots {\n  position: absolute;\n  width: 100%;\n  bottom: 16px;\n  z-index: 99;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: center;\n  -ms-flex-line-pack: center;\n  align-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n}\n\n.slide-navigation-dot {\n  height: 8px;\n  width: 8px;\n  border-radius: 4px;\n  background-color: rgba(210, 210, 210, 0.8);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-navigation-dot-active {\n  background: rgba(255, 255, 255, 0.9);\n}\n\n.slide-navigation-dot:hover {\n  background-color: rgba(200, 200, 255, 0.9);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-video-container {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n.slide-video-container iframe {\n  position: absolute;\n  pointer-events: none;\n  width: 100%;\n}\n\n.slide-shade {\n  position: absolute;\n  height: 100%;\n  width: 100%;\n  left: 0px;\n  top: 0px;\n  z-index: 0;\n}\n\n@media screen and (max-width: 720px) {\n  .slide-contents-container {\n    width: 80%;\n    padding: 16px 24px !important;\n  }\n  .slide-single {\n    /*background-attachment: scroll !important;*/\n  }\n  .slide-single-title {\n    font-size: 32px;\n    line-height: 44px;\n  }\n  .slide-single-subtitle {\n    font-size: 16px;\n    margin-bottom: 4px;\n  }\n  .slide-single-content {\n    font-size: 12px;\n    line-height: 16px;\n  }\n\n  .slide-single-buttons {\n    margin-top: 12px;\n  }\n\n  .slide-button {\n    font-size: 12px;\n    margin: 0px 4px;\n    padding: 6px 8px;\n  }\n  .slide-nav-button {\n    height: 24px;\n    width: 24px;\n  }\n  .slide-nav-button svg {\n    width: 12px;\n    height: 12px;\n  }\n}\n", ""]);
+exports.push([module.i, ".image-slider-container {\n  box-sizing: border-box;\n  overflow: hidden;\n  font-family: inherit;\n  /*font-family: \"Open Sans\", sans-serif;*/\n}\n\n.kzu-slider {\n  position: absolute;\n  z-index: -25;\n  width: 100%;\n  height: 100%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  font-size: 32px;\n  font-weight: 500;\n  color: rgba(100, 100, 100, 0.25);\n}\n\n.image-slider {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n.slides-screen {\n  height: 100%;\n  width: 100%;\n  overflow: hidden;\n  position: relative;\n}\n\n.slides-container-actual {\n  position: relative;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n  opacity: 1;\n}\n\n.slides-container-transition {\n  position: absolute;\n  top: 0px;\n  height: 100%;\n  display: flex;\n  /*transition: margin-left 1s ease-in-out;*/\n}\n\n.slide-single {\n  height: 100%;\n  width: 100%;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  position: relative;\n}\n\n.slide-single .slide-image-img {\n  width: 100%;\n  height: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 0;\n  background-size: cover;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n\n.single-slide-parallax {\n}\n\n.slide-contents-container {\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  box-sizing: border-box;\n  padding: 24px 32px;\n  border-radius: 2px;\n  position: relative;\n  margin-left: 10%;\n  margin-right: 10%;\n}\n\n.slide-contents-align-left {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-start;\n  -ms-flex-line-pack: start;\n  align-content: flex-start;\n  -webkit-align-items: flex-start;\n  -ms-flex-align: start;\n  align-items: flex-start;\n  text-align: left;\n}\n\n.slide-contents-align-center {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: stretch;\n  -ms-flex-line-pack: stretch;\n  align-content: stretch;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n  text-align: center;\n}\n\n.slide-contents-align-right {\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: flex-end;\n  -ms-flex-line-pack: end;\n  align-content: flex-end;\n  -webkit-align-items: flex-end;\n  -ms-flex-align: end;\n  align-items: flex-end;\n  text-align: right;\n}\n\n.slide-single-title {\n  font-size: 54px;\n  line-height: 62px;\n}\n.slide-single-subtitle {\n  font-size: 24px;\n  margin-bottom: 8px;\n}\n.slide-single-content {\n  font-size: 14px;\n}\n\n.slide-single-buttons {\n  margin-top: 16px;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n}\n\n.slide-nav-button {\n  box-sizing: border-box;\n  position: absolute;\n  z-index: 30;\n  top: calc(50% - 24px);\n  height: 48px;\n  width: 48px;\n  cursor: pointer;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(180, 180, 180, 0.2);\n  transition: background 0.2s;\n  border-radius: 50%;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.slide-nav-button:hover {\n  background: rgba(180, 180, 180, 0.5);\n  transition: background 0.2s;\n}\n\n.slide-nav-button svg {\n  width: 20px;\n  height: 20px;\n  fill: rgba(255, 255, 255, 0.8);\n}\n\n.slide-nav-button:hover svg {\n  fill: #fff;\n  transition: fill 0.2s;\n}\n\n.previous-slide-button {\n  padding-right: 2px;\n  left: 8px;\n}\n\n.next-slide-button {\n  padding-left: 2px;\n  right: 8px;\n}\n\n.slide-button {\n  font-size: 12px;\n  line-height: 18px;\n  letter-spacing: 0.5px;\n  margin: 0px 8px;\n  padding: 10px 20px;\n  border-radius: 2px;\n  cursor: pointer;\n  position: relative;\n  overflow: hidden;\n  color: #fff;\n}\n\n.slide-button:hover {\n  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);\n}\n\n.slide-button:hover .slide-button-overlay {\n  opacity: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button:nth-child(1) {\n  margin-left: 0px;\n}\n\n.slide-button:nth-last-child(1) {\n  margin-right: 0px;\n}\n\n.slide-button-overlay {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(255, 255, 255, 0.2);\n  opacity: 0;\n  z-index: 1;\n  transition: opacity 0.1s;\n}\n\n.slide-button-title {\n  position: relative;\n  z-index: 2;\n}\n\n.text-wrap {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.slide-navigation-dots {\n  position: absolute;\n  width: 100%;\n  bottom: 16px;\n  z-index: 99;\n  display: -ms-flexbox;\n  display: -webkit-flex;\n  display: flex;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  -webkit-align-content: center;\n  -ms-flex-line-pack: center;\n  align-content: center;\n  -webkit-align-items: center;\n  -ms-flex-align: center;\n  align-items: center;\n}\n\n.slide-navigation-dot {\n  height: 8px;\n  width: 8px;\n  border-radius: 4px;\n  background-color: rgba(210, 210, 210, 0.8);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-navigation-dot-active {\n  background: rgba(255, 255, 255, 0.9);\n}\n\n.slide-navigation-dot:hover {\n  background-color: rgba(200, 200, 255, 0.9);\n  margin: 4px;\n  cursor: pointer;\n}\n\n.slide-video-container {\n  position: absolute;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: -1;\n}\n\n.slide-video-container iframe {\n  position: absolute;\n  pointer-events: none;\n  width: 100%;\n  min-height: 100%;\n}\n\n.slide-shade {\n  position: absolute;\n  height: 100%;\n  width: 100%;\n  left: 0px;\n  top: 0px;\n  z-index: 0;\n}\n\n@media screen and (max-width: 820px) {\n  .slide-contents-container {\n    width: 75%;\n    padding: 16px 24px !important;\n  }\n  .slide-single {\n    /*background-attachment: scroll !important;*/\n  }\n  .slide-single-title {\n    font-size: 24px;\n    line-height: 32px;\n  }\n  .slide-single-subtitle {\n    font-size: 16px;\n    margin-bottom: 4px;\n  }\n  .slide-single-content {\n    font-size: 12px;\n    line-height: 16px;\n  }\n\n  .slide-single-buttons {\n    margin-top: 12px;\n  }\n  .slide-button {\n    font-size: 11px;\n    margin: 0px 4px;\n    padding: 6px 8px;\n  }\n  .slide-nav-button {\n    top: calc(50% - 14px);\n    height: 28px;\n    width: 28px;\n  }\n  .slide-nav-button svg {\n    width: 14px;\n    height: 14px;\n  }\n  .slide-single-parallax {\n  }\n}\n", ""]);
 
 // exports
 
